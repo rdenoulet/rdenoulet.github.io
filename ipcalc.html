@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>IP CALC</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #000000;
+      color: white;
+      text-align: center;
+      margin: 0;
+      padding: 0;
+    }
+
+    header {
+      background-color: #05004a;
+      color: white;
+      padding: 0.5em;
+      text-align: center;
+    }
+
+    main {
+      padding: 2em;
+    }
+
+    footer {
+      background-color: #05004a;
+      color: white;
+      text-align: center;
+      padding: 1em;
+      position: fixed;
+      width: 100%;
+      bottom: 0;
+    }
+    
+
+
+  </style>
+</head>
+
+  <header>
+    <h3>IP CALCULATOR</h3>
+  </header>
+
+<body>
+
+  <!-- Champ IP -->
+  <div style="text-align: center;">
+    <br><br>
+    <label for="ipAddress">Adresse IP :</label>
+    <input type="text" id="ipAddress" name="ipAddress">
+    <br><br>
+  </div>
+
+  <!-- Slider CIDR -->
+  <div class="slider" style="text-align: center; margin-top: 20px;">
+    <input type="range" min="1" max="30" step="1" value="24" id="slider" style="width: 500px;">
+  </div>
+
+  <!-- Affichage Résultats -->
+  <div class="myTextBox" style="text-align: center; margin-top: 20px;">
+
+    <p id="cidr">CIDR : /<span>24</span></p>
+    <p id="ipaddr">IP : <span>-</span></p><br>
+
+    <p id="masque">Masque : <span>255.255.255.0</span></p>
+    <p id="reseau" style="color:blue">Réseau : <span>-</span></p>
+    <p id="premierhost" style="color:green">Premier host : <span>-</span></p>
+    <p id="dernierhost" style="color:green">Dernier host : <span>-</span></p>
+    <p id="broadcast" style="color:red">Broadcast : <span>-</span></p>
+    <p id="machines" style="color:white">Machines : <span>254</span></p>
+
+  </div>
+
+  <!-- Script principal -->
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      let IP_entree = "";
+      let masque_choisi = "";
+      let adresse_reseau = "";
+      let adresse_broadcast = "";
+
+      const input = document.getElementById("ipAddress");
+      const slider = document.getElementById("slider");
+
+      const cidrDisplay = document.querySelector("#cidr span");
+      const ipaddrDisplay = document.querySelector("#ipaddr span");
+      const masqueDisplay = document.querySelector("#masque span");
+      const reseauDisplay = document.querySelector("#reseau span");
+      const broadcastDisplay = document.querySelector("#broadcast span");
+      const premierhostDisplay = document.querySelector("#premierhost span");
+      const dernierhostDisplay = document.querySelector("#dernierhost span");
+      const machinesDisplay = document.querySelector("#machines span");
+
+      function calculerReseau(ip, masque) {
+        let ipTab = ip.split(".");
+        let masqueTab = masque.split(".");
+        let reseau = "";
+        for (let i = 0; i < 4; i++) {
+          let octetIp = parseInt(ipTab[i]);
+          let octetMasque = parseInt(masqueTab[i]);
+          let octetReseau = octetIp & octetMasque;
+          reseau += octetReseau + (i < 3 ? "." : "");
+        }
+        return reseau;
+      }
+
+      function calculerBroadcast(reseau, masque) {
+        let reseauTab = reseau.split(".");
+        let masqueTab = masque.split(".");
+        let broadcast = "";
+        for (let i = 0; i < 4; i++) {
+          let octetReseau = parseInt(reseauTab[i]);
+          let octetMasque = parseInt(masqueTab[i]);
+          let octetInverseMasque = 255 - octetMasque;
+          let octetBroadcast = octetReseau | octetInverseMasque;
+          broadcast += octetBroadcast + (i < 3 ? "." : "");
+        }
+        return broadcast;
+      }
+
+      function incrementerIP(ip) {
+        let ipTab = ip.split(".").map(Number);
+        ipTab[3]++;
+        for (let i = 3; i > 0; i--) {
+          if (ipTab[i] === 256) {
+            ipTab[i] = 0;
+            ipTab[i - 1]++;
+          }
+        }
+        return ipTab.join(".");
+      }
+
+      function decrementerIP(ip) {
+        let ipTab = ip.split(".").map(Number);
+        ipTab[3]--;
+        for (let i = 3; i > 0; i--) {
+          if (ipTab[i] < 0) {
+            ipTab[i] = 255;
+            ipTab[i - 1]--;
+          }
+        }
+        return ipTab.join(".");
+      }
+
+      function mettreAJourTout() {
+        IP_entree = input.value;
+        ipaddrDisplay.innerHTML = IP_entree;
+
+        let cidr = parseInt(slider.value);
+        cidrDisplay.innerHTML = cidr;
+
+        const masques = [
+          "", "128.0.0.0", "192.0.0.0", "224.0.0.0", "240.0.0.0", "248.0.0.0",
+          "252.0.0.0", "254.0.0.0", "255.0.0.0", "255.128.0.0", "255.192.0.0",
+          "255.224.0.0", "255.240.0.0", "255.248.0.0", "255.252.0.0", "255.254.0.0",
+          "255.255.0.0", "255.255.128.0", "255.255.192.0", "255.255.224.0", "255.255.240.0",
+          "255.255.248.0", "255.255.252.0", "255.255.254.0", "255.255.255.0", "255.255.255.128",
+          "255.255.255.192", "255.255.255.224", "255.255.255.240", "255.255.255.248",
+          "255.255.255.252"
+        ];
+
+        masque_choisi = masques[cidr] || "0.0.0.0";
+        masqueDisplay.innerHTML = masque_choisi;
+
+        // Ne calcule que si l'IP est valide
+        if (!/^(\d{1,3}\.){3}\d{1,3}$/.test(IP_entree)) return;
+
+        adresse_reseau = calculerReseau(IP_entree, masque_choisi);
+        adresse_broadcast = calculerBroadcast(adresse_reseau, masque_choisi);
+
+        reseauDisplay.innerHTML = adresse_reseau;
+        broadcastDisplay.innerHTML = adresse_broadcast;
+        premierhostDisplay.innerHTML = incrementerIP(adresse_reseau);
+        dernierhostDisplay.innerHTML = decrementerIP(adresse_broadcast);
+        machinesDisplay.innerHTML = (2 ** (32 - cidr) - 2).toLocaleString("fr-FR");
+      }
+
+      input.addEventListener("input", mettreAJourTout);
+      slider.addEventListener("input", mettreAJourTout);
+    });
+  </script>
+
+</body>
+</html>
