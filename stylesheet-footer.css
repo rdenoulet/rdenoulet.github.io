@@ -1,0 +1,26 @@
+     footer {
+    background-color: #05004a;
+    color: white;
+    position: fixed;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    bottom: 0;
+    padding: 1em;
+    margin: 0;
+    border: none;
+    }
+
+    footer p {
+        margin: 0;
+    }
+
+    footer a {
+        position: absolute;
+        right: 40px;
+    }
+
+    footer img {
+        width: 80px;
+    }    
